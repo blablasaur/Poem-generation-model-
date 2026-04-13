@@ -51,7 +51,6 @@ class TransformerDecoderLayer(nn.Module):
 
         self.norm_first = norm_first
         self.norm1 = nn.LayerNorm(d_model, eps=layer_norm_eps, bias=bias, **factory_kwargs)
-        self.norm2 = nn.LayerNorm(d_model, eps=layer_norm_eps, bias=bias, **factory_kwargs)
         self.norm3 = nn.LayerNorm(d_model, eps=layer_norm_eps, bias=bias, **factory_kwargs)
         self.dropout1 = nn.Dropout(dropout)
         self.dropout2 = nn.Dropout(dropout)
@@ -75,22 +74,6 @@ class TransformerDecoderLayer(nn.Module):
         )
         return self.dropout1(x)
 
-    # multihead attention block
-    def _mha_block(
-        self,
-        x: Tensor,
-        mem: Tensor,
-        attn_mask: Optional[Tensor],
-        is_causal: bool = False,
-    ) -> Tensor:
-        x = self.multihead_attn(
-            x,
-            mem,
-            mem,
-            attn_mask=attn_mask,
-            is_causal=is_causal,
-        )
-        return self.dropout2(x)
 
     # feed forward block
     def _ff_block(self, x: Tensor) -> Tensor:
@@ -101,9 +84,7 @@ class TransformerDecoderLayer(nn.Module):
         self,
         tgt: Tensor,
         tgt_mask: Optional[Tensor] = None,
-        memory_mask: Optional[Tensor] = None,
         tgt_is_causal=False,
-        memory_is_causal=False,
     ):
         x = tgt
         if self.norm_first:
